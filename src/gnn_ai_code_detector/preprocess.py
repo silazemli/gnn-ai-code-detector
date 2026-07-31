@@ -1,17 +1,29 @@
-from gnn_ai_code_detector.meta_ast import NodeKind, MetaNode, MetaAST
 from pathlib import Path
 import json
 import subprocess
 
-class ClangMetaConverter:
-    def __init__(self, mapping: dict[str, NodeKind], clang_path: str = "clang"):
-        self.mapping = mapping
+class ClangASTConverter:
+    KEYS_TO_REMOVE = {
+        "id", "loc", "range", "isUsed",
+        "mangledName", "valueCategory"
+    }
+
+    COMPILER_ARTIFACTS = {
+        "ImplicitCastExpr"
+    }
+
+    def __init__(self, clang_path: str = "clang"):
         self.clang_path = clang_path
 
-    def convert(self, path: Path) -> MetaAST:
-        clang_ast = self._build_ast(path)
+    def convert(self, path: Path):
+        ast = self._build_ast(path)
 
-        branches = self._cut_relevant_branches(clang_ast)
+        ast = self._cut_irrelevant_branches(ast, path)
+
+        ast = self._remove_metadata(ast)     
+
+        ast = self._remove_compiler_artifacts(ast)   
+
 
     def _build_ast(self, path: Path) -> dict:
         result = subprocess.run(
@@ -28,8 +40,7 @@ class ClangMetaConverter:
 
         return json.loads(result.stdout)
 
-    def _cut_relevant_branches(self, ast: dict, path: Path) -> list[dict]:
-        # Removes the includes
+    def _cut_irrelevant_branches(self, ast: dict, path: Path) -> dict:
         source_file = str(path)
 
         def is_relevant(node: dict) -> bool:
@@ -38,11 +49,59 @@ class ClangMetaConverter:
                 node.get("name") == "main"
             )
 
-        return [
+        cut_ast = ast.copy()
+
+        cut_ast["inner"] = [
             child
             for child in ast.get("inner", [])
             if is_relevant(child)
         ]
+        
+        return cut_ast
 
-    def _convert_node(self, node: dict) -> MetaNode:
-        pass
+    def _remove_metadata(self, ast: dict) -> dict:
+        def clean(value):
+            if isinstance(value, dict):
+                return {
+                    key: clean(val)
+                    for key, val in value.items()
+                    if key not in self.KEYS_TO_REMOVE
+                }
+            elif isinstance(value, list):
+                return [
+                    clean(item)
+                    for item in value
+                ]
+            else:
+                return value
+
+        return clean(ast)
+
+    def _remove_compiler_artifacts(self, ast: dict) -> dict:
+        def clean(node):
+            if isinstance(node, list):
+                result = []
+                for child in node:
+                    cleaned = clean(child)
+
+                    if cleaned is None:
+                        continue
+
+                    result.append(cleaned)
+
+                return result
+
+            if not isinstance(node, dict):
+                return node
+
+            if node.get("kind") in self.COMPILER_ARTIFACTS:
+                inner = node.get("inner", [])
+                return clean(inner[0]) if len(inner) == 1 else clean(inner)
+
+            return {
+                key: clean(value)
+                for key, value in node.items()
+            }
+
+        return clean(ast)
+    
