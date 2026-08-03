@@ -3,6 +3,55 @@ import json
 import subprocess
 
 class ClangASTConverter:
+    C_PREAMBLE = """
+    #include <assert.h>
+    #include <ctype.h>
+    #include <math.h>
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    """
+
+    CPP_PREAMBLE = """
+    #include <algorithm>
+    #include <cmath>
+    #include <cstdio>
+    #include <cstdlib>
+    #include <cstring>
+    #include <cstdint>
+    #include <iostream>
+    #include <map>
+    #include <set>
+    #include <string>
+    #include <unordered_map>
+    #include <unordered_set>
+    #include <vector>
+    """
+
+    CLANG_ARGS = [
+        "--target=x86_64-w64-windows-gnu",
+        "--gcc-install-dir=C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/16.1.0",
+
+        "-w",
+        "-DM_PI=3.14159265358979323846",
+
+        "-isystem",
+        "C:/msys64/ucrt64/include",
+
+        "-isystem",
+        "C:/msys64/ucrt64/include/opencv4",
+
+        "-isystem",
+        "C:/msys64/ucrt64/include/eigen3",
+
+        "-isystem",
+        "C:/msys64/ucrt64/include/cryptopp",
+
+        "-Xclang",
+        "-ast-dump=json",
+        "-fsyntax-only",
+    ]
+
     KEYS_TO_REMOVE = {
         "id", "loc", "range", "isUsed",
         "mangledName", "valueCategory"
@@ -15,32 +64,25 @@ class ClangASTConverter:
     def __init__(self, clang_path: str = "clang"):
         self.clang_path = clang_path
 
-    def convert(self, path: Path):
-        ast = self._build_ast(path)
-
-        ast = self._cut_irrelevant_branches(ast, path)
-
-        ast = self._remove_metadata(ast)     
-
-        ast = self._remove_compiler_artifacts(ast)   
-
-
-    def _build_ast(self, path: Path) -> dict:
+    def build_ast(self, path: Path) -> dict:
         result = subprocess.run(
-            [
-                self.clang_path,
-                "-Xclang", "-ast-dump=json",
-                "-fsyntax-only",
-                str(path),
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
+            [self.clang_path, *self.CLANG_ARGS, str(path)],
+            capture_output=True, text=True, check=True,
         )
 
         return json.loads(result.stdout)
 
-    def _cut_irrelevant_branches(self, ast: dict, path: Path) -> dict:
+    def append_headers(self, source: str, language: str) -> str:
+        if language == "C":
+            preamble = self.C_PREAMBLE
+        elif language == "C++":
+            preamble = self.CPP_PREAMBLE
+        else: 
+            raise(ValueError("Incorrect language specification, must be C/C++"))
+
+        return preamble + "\n" + source
+    
+    def cut_irrelevant_branches(self, ast: dict, path: Path) -> dict:
         source_file = str(path)
 
         def is_relevant(node: dict) -> bool:
@@ -59,7 +101,7 @@ class ClangASTConverter:
         
         return cut_ast
 
-    def _remove_metadata(self, ast: dict) -> dict:
+    def remove_metadata(self, ast: dict) -> dict:
         def clean(value):
             if isinstance(value, dict):
                 return {
@@ -77,7 +119,7 @@ class ClangASTConverter:
 
         return clean(ast)
 
-    def _remove_compiler_artifacts(self, ast: dict) -> dict:
+    def remove_compiler_artifacts(self, ast: dict) -> dict:
         def clean(node):
             if isinstance(node, list):
                 result = []
