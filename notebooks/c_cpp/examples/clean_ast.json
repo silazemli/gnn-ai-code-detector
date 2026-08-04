@@ -1,0 +1,553 @@
+{
+  "kind": "TranslationUnitDecl",
+  "inner": [
+    {
+      "kind": "TypedefDecl",
+      "name": "MyInt",
+      "type": {
+        "qualType": "int"
+      },
+      "inner": [
+        {
+          "kind": "BuiltinType",
+          "type": {
+            "qualType": "int"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "RecordDecl",
+      "name": "Point",
+      "tagUsed": "struct",
+      "completeDefinition": true,
+      "inner": [
+        {
+          "kind": "FieldDecl",
+          "isReferenced": true,
+          "name": "x",
+          "type": {
+            "qualType": "int"
+          }
+        },
+        {
+          "kind": "FieldDecl",
+          "isReferenced": true,
+          "name": "y",
+          "type": {
+            "qualType": "int"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "VarDecl",
+      "name": "global_counter",
+      "type": {
+        "qualType": "int"
+      },
+      "storageClass": "static",
+      "init": "c",
+      "inner": [
+        {
+          "kind": "IntegerLiteral",
+          "type": {
+            "qualType": "int"
+          },
+          "value": "42"
+        }
+      ]
+    },
+    {
+      "kind": "FunctionDecl",
+      "name": "add",
+      "type": {
+        "qualType": "int (int, int)"
+      },
+      "inner": [
+        {
+          "kind": "ParmVarDecl",
+          "name": "a",
+          "type": {
+            "qualType": "int"
+          }
+        },
+        {
+          "kind": "ParmVarDecl",
+          "name": "b",
+          "type": {
+            "qualType": "int"
+          }
+        },
+        {
+          "kind": "CompoundStmt",
+          "inner": [
+            {
+              "kind": "ReturnStmt",
+              "inner": [
+                {
+                  "kind": "BinaryOperator",
+                  "type": {
+                    "qualType": "int"
+                  },
+                  "opcode": "+",
+                  "inner": [
+                    {
+                      "kind": "ImplicitCastExpr",
+                      "type": {
+                        "qualType": "int"
+                      },
+                      "castKind": "LValueToRValue",
+                      "inner": [
+                        {
+                          "kind": "DeclRefExpr",
+                          "type": {
+                            "qualType": "int"
+                          },
+                          "referencedDecl": {
+                            "kind": "ParmVarDecl",
+                            "name": "a",
+                            "type": {
+                              "qualType": "int"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "ImplicitCastExpr",
+                      "type": {
+                        "qualType": "int"
+                      },
+                      "castKind": "LValueToRValue",
+                      "inner": [
+                        {
+                          "kind": "DeclRefExpr",
+                          "type": {
+                            "qualType": "int"
+                          },
+                          "referencedDecl": {
+                            "kind": "ParmVarDecl",
+                            "name": "b",
+                            "type": {
+                              "qualType": "int"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "FunctionDecl",
+      "name": "helper",
+      "type": {
+        "qualType": "int (const struct Point *)"
+      },
+      "storageClass": "static",
+      "inner": [
+        {
+          "kind": "ParmVarDecl",
+          "name": "p",
+          "type": {
+            "qualType": "const struct Point *"
+          }
+        },
+        {
+          "kind": "CompoundStmt",
+          "inner": [
+            {
+              "kind": "ReturnStmt",
+              "inner": [
+                {
+                  "kind": "BinaryOperator",
+                  "type": {
+                    "qualType": "int"
+                  },
+                  "opcode": "+",
+                  "inner": [
+                    {
+                      "kind": "ParenExpr",
+                      "type": {
+                        "qualType": "int"
+                      },
+                      "inner": [
+                        {
+                          "kind": "BinaryOperator",
+                          "type": {
+                            "qualType": "int"
+                          },
+                          "opcode": "*",
+                          "inner": [
+                            {
+                              "kind": "ImplicitCastExpr",
+                              "type": {
+                                "qualType": "int"
+                              },
+                              "castKind": "LValueToRValue",
+                              "inner": [
+                                {
+                                  "kind": "ParenExpr",
+                                  "type": {
+                                    "qualType": "const int"
+                                  },
+                                  "inner": [
+                                    {
+                                      "kind": "MemberExpr",
+                                      "type": {
+                                        "qualType": "const int"
+                                      },
+                                      "name": "x",
+                                      "isArrow": true,
+                                      "referencedMemberDecl": "0x1b778ed19e8",
+                                      "inner": [
+                                        {
+                                          "kind": "ImplicitCastExpr",
+                                          "type": {
+                                            "qualType": "const struct Point *"
+                                          },
+                                          "castKind": "LValueToRValue",
+                                          "inner": [
+                                            {
+                                              "kind": "DeclRefExpr",
+                                              "type": {
+                                                "qualType": "const struct Point *"
+                                              },
+                                              "referencedDecl": {
+                                                "kind": "ParmVarDecl",
+                                                "name": "p",
+                                                "type": {
+                                                  "qualType": "const struct Point *"
+                                                }
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "ImplicitCastExpr",
+                              "type": {
+                                "qualType": "int"
+                              },
+                              "castKind": "LValueToRValue",
+                              "inner": [
+                                {
+                                  "kind": "ParenExpr",
+                                  "type": {
+                                    "qualType": "const int"
+                                  },
+                                  "inner": [
+                                    {
+                                      "kind": "MemberExpr",
+                                      "type": {
+                                        "qualType": "const int"
+                                      },
+                                      "name": "x",
+                                      "isArrow": true,
+                                      "referencedMemberDecl": "0x1b778ed19e8",
+                                      "inner": [
+                                        {
+                                          "kind": "ImplicitCastExpr",
+                                          "type": {
+                                            "qualType": "const struct Point *"
+                                          },
+                                          "castKind": "LValueToRValue",
+                                          "inner": [
+                                            {
+                                              "kind": "DeclRefExpr",
+                                              "type": {
+                                                "qualType": "const struct Point *"
+                                              },
+                                              "referencedDecl": {
+                                                "kind": "ParmVarDecl",
+                                                "name": "p",
+                                                "type": {
+                                                  "qualType": "const struct Point *"
+                                                }
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "ImplicitCastExpr",
+                      "type": {
+                        "qualType": "int"
+                      },
+                      "castKind": "LValueToRValue",
+                      "inner": [
+                        {
+                          "kind": "MemberExpr",
+                          "type": {
+                            "qualType": "const int"
+                          },
+                          "name": "y",
+                          "isArrow": true,
+                          "referencedMemberDecl": "0x1b778ed1a58",
+                          "inner": [
+                            {
+                              "kind": "ImplicitCastExpr",
+                              "type": {
+                                "qualType": "const struct Point *"
+                              },
+                              "castKind": "LValueToRValue",
+                              "inner": [
+                                {
+                                  "kind": "DeclRefExpr",
+                                  "type": {
+                                    "qualType": "const struct Point *"
+                                  },
+                                  "referencedDecl": {
+                                    "kind": "ParmVarDecl",
+                                    "name": "p",
+                                    "type": {
+                                      "qualType": "const struct Point *"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "FunctionDecl",
+      "name": "main",
+      "type": {
+        "qualType": "int (void)"
+      },
+      "inner": [
+        {
+          "kind": "CompoundStmt",
+          "inner": [
+            {
+              "kind": "DeclStmt",
+              "inner": [
+                {
+                  "kind": "VarDecl",
+                  "name": "result",
+                  "type": {
+                    "qualType": "int"
+                  },
+                  "init": "c",
+                  "inner": [
+                    {
+                      "kind": "CallExpr",
+                      "type": {
+                        "qualType": "int"
+                      },
+                      "inner": [
+                        {
+                          "kind": "ImplicitCastExpr",
+                          "type": {
+                            "qualType": "int (*)(int, int)"
+                          },
+                          "castKind": "FunctionToPointerDecay",
+                          "inner": [
+                            {
+                              "kind": "DeclRefExpr",
+                              "type": {
+                                "qualType": "int (int, int)"
+                              },
+                              "referencedDecl": {
+                                "kind": "FunctionDecl",
+                                "name": "add",
+                                "type": {
+                                  "qualType": "int (int, int)"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "IntegerLiteral",
+                          "type": {
+                            "qualType": "int"
+                          },
+                          "value": "2"
+                        },
+                        {
+                          "kind": "IntegerLiteral",
+                          "type": {
+                            "qualType": "int"
+                          },
+                          "value": "3"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "IfStmt",
+              "inner": [
+                {
+                  "kind": "BinaryOperator",
+                  "type": {
+                    "qualType": "int"
+                  },
+                  "opcode": ">",
+                  "inner": [
+                    {
+                      "kind": "ImplicitCastExpr",
+                      "type": {
+                        "qualType": "int"
+                      },
+                      "castKind": "LValueToRValue",
+                      "inner": [
+                        {
+                          "kind": "DeclRefExpr",
+                          "type": {
+                            "qualType": "int"
+                          },
+                          "referencedDecl": {
+                            "kind": "VarDecl",
+                            "name": "result",
+                            "type": {
+                              "qualType": "int"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "IntegerLiteral",
+                      "type": {
+                        "qualType": "int"
+                      },
+                      "value": "4"
+                    }
+                  ]
+                },
+                {
+                  "kind": "CompoundStmt",
+                  "inner": [
+                    {
+                      "kind": "CallExpr",
+                      "type": {
+                        "qualType": "int"
+                      },
+                      "inner": [
+                        {
+                          "kind": "ImplicitCastExpr",
+                          "type": {
+                            "qualType": "int (*)(const char *, ...)"
+                          },
+                          "castKind": "FunctionToPointerDecay",
+                          "inner": [
+                            {
+                              "kind": "DeclRefExpr",
+                              "type": {
+                                "qualType": "int (const char *, ...)"
+                              },
+                              "referencedDecl": {
+                                "kind": "FunctionDecl",
+                                "name": "printf",
+                                "type": {
+                                  "qualType": "int (const char *, ...)"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "ImplicitCastExpr",
+                          "type": {
+                            "qualType": "const char *"
+                          },
+                          "castKind": "NoOp",
+                          "inner": [
+                            {
+                              "kind": "ImplicitCastExpr",
+                              "type": {
+                                "qualType": "char *"
+                              },
+                              "castKind": "ArrayToPointerDecay",
+                              "inner": [
+                                {
+                                  "kind": "StringLiteral",
+                                  "type": {
+                                    "qualType": "char[4]"
+                                  },
+                                  "value": "\"%d\\n\""
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "ImplicitCastExpr",
+                          "type": {
+                            "qualType": "int"
+                          },
+                          "castKind": "LValueToRValue",
+                          "inner": [
+                            {
+                              "kind": "DeclRefExpr",
+                              "type": {
+                                "qualType": "int"
+                              },
+                              "referencedDecl": {
+                                "kind": "VarDecl",
+                                "name": "result",
+                                "type": {
+                                  "qualType": "int"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "ReturnStmt",
+              "inner": [
+                {
+                  "kind": "IntegerLiteral",
+                  "type": {
+                    "qualType": "int"
+                  },
+                  "value": "0"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

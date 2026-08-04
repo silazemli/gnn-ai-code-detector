@@ -54,7 +54,9 @@ class ClangASTConverter:
 
     KEYS_TO_REMOVE = {
         "id", "loc", "range", "isUsed",
-        "mangledName", "valueCategory"
+        "mangledName", "valueCategory",
+        "isReferenced", "completeDefinition",
+        "value", "type"
     }
 
     COMPILER_ARTIFACTS = {
@@ -82,21 +84,19 @@ class ClangASTConverter:
 
         return preamble + "\n" + source
     
-    def cut_irrelevant_branches(self, ast: dict, path: Path) -> dict:
-        source_file = str(path)
-
-        def is_relevant(node: dict) -> bool:
+    def cut_irrelevant_branches(self, ast: dict) -> dict:
+        def irrelevant(node: dict) -> bool:
             return (
-                node.get("loc", {}).get("file") == source_file or
-                node.get("name") == "main"
+                node.get("isImplicit", False) or
+                "includedFrom" in node.get("loc", {})
             )
 
         cut_ast = ast.copy()
 
         cut_ast["inner"] = [
-            child
-            for child in ast.get("inner", [])
-            if is_relevant(child)
+            branch
+            for branch in ast.get("inner", [])
+            if not irrelevant(branch)
         ]
         
         return cut_ast
