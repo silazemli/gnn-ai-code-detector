@@ -1,6 +1,16 @@
+from __future__ import annotations
+import torch
+from torch_geometric.data import Data
 from pathlib import Path
 import json
 import subprocess
+from enum import Enum
+
+class Edge(Enum):
+    CHILD = 0
+    PARENT = 1
+    REFERENCE = 2
+    USAGE = 3
 
 class ClangASTConverter:
     C_PREAMBLE = """
@@ -52,15 +62,34 @@ class ClangASTConverter:
         "-fsyntax-only",
     ]
 
-    KEYS_TO_REMOVE = {
-        "id", "loc", "range", "isUsed",
-        "mangledName", "valueCategory",
-        "isReferenced", "completeDefinition",
-        "value", "type"
+    RELEVANT_METADATA = {
+        "kind", "inner", "opcode",
+        "isArrow", "castKind", "id",
+        "referencedDecl",
+        "referencedMemberDecl"
     }
 
-    COMPILER_ARTIFACTS = {
-        "ImplicitCastExpr"
+    NODES_TO_REMOVE = {
+        "ImplicitCastExpr",
+
+        "UnusedAttr", "DLLImportAttr", "WarnUnusedResultAttr",
+        "AlwaysInlineAttr", "DeprecatedAttr", "GNUInlineAttr",
+        "NonNullAttr", "ReturnsNonNullAttr", "MaxFieldAlignmentAttr",
+        "NoInlineAttr", "ErrorAttr", "OverrideAttr", "AlignedAttr",
+        "PureAttr", "ConstAttr", "BuiltinAttr", "NoThrowAttr",
+
+        "ParagraphComment", "TextComment", "FullComment",
+        "BlockCommandComment",
+
+        "TemplateArgument", "QualType", "DependentNameType",
+        "DependentSizedArrayType", "InjectedClassNameType",
+        "UnresolvedLookupExpr", "UnresolvedMemberExpr",
+        "DependentScopeDeclRefExpr"
+    }
+
+    NODE_FEATURES = {
+        "kind", "opcode",
+        "castKind", "isArrow"
     }
 
     def __init__(self, clang_path: str = "clang"):
@@ -86,9 +115,13 @@ class ClangASTConverter:
     
     def cut_irrelevant_branches(self, ast: dict) -> dict:
         def irrelevant(node: dict) -> bool:
-            return (
-                node.get("isImplicit", False) or
-                "includedFrom" in node.get("loc", {})
+            return ( # remove
+                # compiler-generated definitions
+                node.get("isImplicit", False)
+                # includes
+                or node.get("loc", {}).get("includedFrom")
+                # macro expansions from elsewhere
+                or node.get("loc", {}).get("expansionLoc")
             )
 
         cut_ast = ast.copy()
@@ -107,7 +140,7 @@ class ClangASTConverter:
                 return {
                     key: clean(val)
                     for key, val in value.items()
-                    if key not in self.KEYS_TO_REMOVE
+                    if key in self.RELEVANT_METADATA
                 }
             elif isinstance(value, list):
                 return [
@@ -119,31 +152,205 @@ class ClangASTConverter:
 
         return clean(ast)
 
-    def remove_compiler_artifacts(self, ast: dict) -> dict:
+    def remove_irrelevant_nodes(self, ast: dict) -> dict:
         def clean(node):
-            if isinstance(node, list):
-                result = []
-                for child in node:
-                    cleaned = clean(child)
+            if "inner" not in node:
+                return
+            
+            children = []
 
-                    if cleaned is None:
-                        continue
+            for child in node["inner"]:
+                if "id" not in child:
+                    continue
 
-                    result.append(cleaned)
+                clean(child)
 
-                return result
+                if child.get("kind") in self.NODES_TO_REMOVE:
+                    children.extend(child.get("inner", []))
+                else:
+                    children.append(child)
 
-            if not isinstance(node, dict):
-                return node
+            node["inner"] = children
+        
+        clean(ast)
+        return ast
 
-            if node.get("kind") in self.COMPILER_ARTIFACTS:
-                inner = node.get("inner", [])
-                return clean(inner[0]) if len(inner) == 1 else clean(inner)
+    def construct_graph(self, ast: dict):
+        graph: dict = {}
+        
+        def visit(node: dict):
+            node_id = node["id"]
 
-            return {
-                key: clean(value)
-                for key, value in node.items()
+            edges = {"children": [], "references": []}
+
+            features = {
+                key: node[key]
+                for key in self.NODE_FEATURES
+                if key in node
             }
 
-        return clean(ast)
+            referenced_decl: dict = node.get("referencedDecl", {})
+            if referenced_decl:
+                reference_id = referenced_decl.get("id")
+                if reference_id is not None: # is this check redundant? most likely
+                    edges["references"].append(reference_id)
+
+            referenced_member_decl: str = node.get("referencedMemberDecl", "")
+            if referenced_member_decl:
+                reference_id = referenced_member_decl.get("id")
+                if reference_id is not None:
+                    edges["references"].append(reference_id)
+
+            graph[node_id] = {
+                "edges": edges,
+                "features": features
+            }
+
+            for child in node.get("inner", []):
+                child_id = child["id"]
+                edges["children"].append(child_id)
+                visit(child)
+
+        visit(ast)
+
+        return graph
+
+    def handle_external_references(self, graph: dict) -> dict:
+        node_ids = set(graph)
+
+        for data in graph.values():
+            data["edges"]["references"] = [
+                reference
+                for reference in data["edges"]["references"]
+                if reference in node_ids
+            ]
+
+        return graph
     
+    def _walk(self, node: dict):
+        if isinstance(node, dict):
+            if "kind" in node:
+                yield node
+
+            for value in node.values():
+                yield from self._walk(value)
+
+        elif isinstance(node, list):
+            for item in node:
+                yield from self._walk(item)
+                
+    def build_vocabularies(self, ast_dir: Path) -> dict:
+        kinds = set()
+        opcodes = set()
+        cast_kinds = set()
+
+        for path in ast_dir.glob("*.json"):
+            with path.open("r", encoding="utf-8") as f:
+                ast = json.load(f)
+
+            for node in self._walk(ast):
+                kinds.add(node["kind"])
+
+                if "opcode" in node:
+                    opcodes.add(node["opcode"])
+
+                if "castKind" in node:
+                    cast_kinds.add(node["castKind"])
+
+        def make_vocab(values, special):
+            vocab = {special: 0}
+            for value in sorted(values):
+                vocab[value] = len(vocab)
+            return vocab
+
+        return {
+            "kind": make_vocab(kinds, "<UNK>"),
+            "opcode": make_vocab(opcodes, "<NONE>"),
+            "castKind": make_vocab(cast_kinds, "<NONE>"),
+        }
+
+    def construct_pyg_data(self, graph: dict, vocab: dict):
+        node_to_idx = {
+            node_id: idx
+            for idx, node_id in enumerate(graph)
+        }
+
+        edges = []
+        edge_types = []
+
+        kinds = []
+        opcodes = []
+        cast_kinds = []
+        is_arrows = []
+
+        def add_edge(src, dst, edge_type):
+            edges.append(src, dst)
+            edge_types.append(edge_type.value)
+
+        for node_id, node in graph.items():
+            src = node_to_idx[node_id]
+            features = node["features"]
+
+            kinds.append(
+                vocab["kind"].get(features["kind"], vocab["kind"]["<UNK>"])
+            )
+
+            opcodes.append(
+                vocab["opcode"].get(features.get("opcode"), vocab["opcode"]["<NONE>"])
+            )
+
+            cast_kinds.append(
+                vocab["castKind"].get(features.get("castKind"), vocab["castKind"]["<NONE>"])
+            )
+
+            is_arrows.append(
+                features.get("isArrow", False)
+            )
+
+            for child_id in node["edges"]["children"]:
+                dst = node_to_idx[child_id]
+
+                add_edge(src, dst, Edge.CHILD)
+                add_edge(dst, src, Edge.PARENT)
+
+            for reference_id in node["edges"]["references"]:
+                dst = node_to_idx[reference_id]
+
+                add_edge(src, dst, Edge.REFERENCE)
+                add_edge(dst, src, Edge.USAGE)
+
+        edge_index = torch.tensor(
+            edges,
+            dtype=torch.long
+        ).t().contiguous()
+
+        edge_type = torch.tensor(
+            edge_types,
+            dtype=torch.long
+        )
+
+        kind_id = vocab["kind"].get(
+            node["features"]["kind"],
+            vocab["kind"]["<UNK>"]
+        )
+
+        opcode_id = vocab["opcode"].get(
+            node["features"].get("opcode"),
+            vocab["opcode"]["<NONE>"]
+        )
+
+        cast_kind_id = vocab["castKind"].get(
+            node["features"].get("castKind"),
+            vocab["castKind"]["<NONE>"]
+        )
+
+        is_arrow = node["features"].get("isArrow", False)
+
+        return Data(
+            kind=kind,
+            opcode=opcode,
+            cast_kind=cast_kind,
+            is_arrow=is_arrow,
+            edge_index=edge_index,
+            edge_type=edge_type,
+        )

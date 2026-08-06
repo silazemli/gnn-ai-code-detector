@@ -10,21 +10,18 @@ from gnn_ai_code_detector.preprocess import ClangASTConverter
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 DATASET_PATH = (
-    PROJECT_ROOT
-    / "data"
-    / "Code_Dataset"
-    / "HumanVsAi_CodeDataset.csv"
+    PROJECT_ROOT/"data"/"Code_Dataset"/"HumanVsAi_CodeDataset.csv"
 )
 
-OUTPUT_DIR = PROJECT_ROOT / "data" / "c_cpp" / "raw_asts"
+OUTPUT_DIR = PROJECT_ROOT/"data"/"c_cpp"/"raw_asts"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-FORCE_REBUILD = True
+FORCE_REBUILD = False
 
 def process_sample(args):
     df_id, source, language, force_rebuild = args
 
-    output_path = OUTPUT_DIR / f"{df_id}.json"
+    output_path = OUTPUT_DIR/f"{df_id}.json"
 
     if output_path.exists() and not force_rebuild:
         return df_id, "skipped"
@@ -34,8 +31,7 @@ def process_sample(args):
     suffix = ".c" if language == "C" else ".cpp"
 
     source_with_headers = converter.append_headers(
-        source,
-        language
+        source, language
     )
 
     temp_path = None

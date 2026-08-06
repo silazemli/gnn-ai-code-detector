@@ -1,0 +1,298 @@
+================================================================================
+Files processed: 3846
+Nodes inspected: 1417936
+================================================================================
+
+NODE KINDS
+--------------------------------------------------------------------------------
+  215271  DeclRefExpr
+  139241  VarDecl
+  114794  ParmVarDecl
+   58985  IntegerLiteral
+   58880  BinaryOperator
+   57045  FunctionDecl
+   55196  MemberExpr
+   51451  CompoundStmt
+   48510  CallExpr
+   37724  CXXMethodDecl
+   30639  CXXThisExpr
+   28843  UnaryOperator
+   27296  ReturnStmt
+   26892  CXXOperatorCallExpr
+   25782  ParenExpr
+   24718  DeclStmt
+   21793  StringLiteral
+   19627  BuiltinType
+   19157  CXXDependentScopeMemberExpr
+   18677  CXXMemberCallExpr
+   18673  PointerType
+   18188  TypedefType
+   16338  RecordType
+   14429  CaseStmt
+   13343  CXXRecordDecl
+   13084  IfStmt
+   11639  EnumConstantDecl
+   10894  TypedefDecl
+   10379  TemplateTypeParmDecl
+   10313  CStyleCastExpr
+   10258  MaterializeTemporaryExpr
+    9952  ClassTemplateSpecializationDecl
+    9322  ArraySubscriptExpr
+    9125  TypeAliasDecl
+    8843  CharacterLiteral
+    8784  TemplateSpecializationType
+    7375  CXXConstructExpr
+    7122  CXXBindTemporaryExpr
+    6861  CXXBoolLiteralExpr
+    6198  ConstantExpr
+    6164  InitListExpr
+    5915  ExprWithCleanups
+    5544  FunctionProtoType
+    5514  ParenType
+    5290  CXXConstructorDecl
+    4966  ForStmt
+    4814  LinkageSpecDecl
+    4636  FieldDecl
+    4617  FunctionTemplateDecl
+    4370  CXXStaticCastExpr
+    4009  SubstTemplateTypeParmType
+    3881  AccessSpecDecl
+    3846  TranslationUnitDecl
+    3076  CXXDefaultArgExpr
+    3003  CXXTemporaryObjectExpr
+    2690  BreakStmt
+    2514  NonTypeTemplateParmDecl
+    2496  CXXNullPtrLiteralExpr
+    2128  FloatingLiteral
+    2068  CompoundAssignOperator
+    1757  CXXDestructorDecl
+    1742  CXXFunctionalCastExpr
+    1548  CXXUnresolvedConstructExpr
+    1514  UsingDirectiveDecl
+    1474  TypeOfExprType
+    1443  WhileStmt
+    1310  CXXThrowExpr
+    1262  IncompleteArrayType
+    1259  TypeTraitExpr
+    1222  DecayedType
+    1220  ConditionalOperator
+    1168  ClassTemplateDecl
+    1145  UnaryExprOrTypeTraitExpr
+    1014  NamespaceDecl
+     999  RecordDecl
+     930  DecltypeType
+     912  SwitchStmt
+     898  DefaultStmt
+     831  LValueReferenceType
+     801  CXXForRangeStmt
+     756  FriendDecl
+     755  ConstantArrayType
+     629  ParenListExpr
+     563  EnumType
+     550  TypeAliasTemplateDecl
+     502  EnumDecl
+     485  SubstNonTypeTemplateParmExpr
+     448  GCCAsmStmt
+     425  CXXConversionDecl
+     400  CXXStdInitializerListExpr
+     381  GotoStmt
+     357  ContinueStmt
+     322  CXXReinterpretCastExpr
+     300  ClassTemplatePartialSpecializationDecl
+     284  StaticAssertDecl
+     241  LambdaExpr
+     235  TemplateTemplateParmDecl
+     211  BindingDecl
+     201  TemplateTypeParmType
+     199  UnaryTransformType
+     198  UsingShadowDecl
+     173  UsingDecl
+     165  LabelStmt
+     161  CXXTypeidExpr
+     157  PackExpansionExpr
+     150  CXXNewExpr
+     136  DecompositionDecl
+     101  ImplicitValueInitExpr
+      96  CXXScalarValueInitExpr
+      90  PredefinedSugarType
+      72  CXXDefaultInitExpr
+      66  CXXDeleteExpr
+      62  CXXCatchStmt
+      61  CXXTryStmt
+      61  DoStmt
+      56  IndirectFieldDecl
+      50  NullStmt
+      49  AttributedType
+      39  CXXConstCastExpr
+      37  GNUNullExpr
+      26  CXXPseudoDestructorExpr
+      14  UsingType
+       9  ChooseExpr
+       9  EmptyDecl
+       7  CompoundLiteralExpr
+       7  NamespaceAliasDecl
+       5  StmtExpr
+       1  FunctionNoProtoType
+       1  ImaginaryLiteral
+       1  CXXDynamicCastExpr
+       1  FileScopeAsmDecl
+
+FIELDS
+--------------------------------------------------------------------------------
+ 1417936  100.00%  id
+ 1417936  100.00%  kind
+  692217   48.82%  inner
+  215271   15.18%  referencedDecl
+   89791    6.33%  opcode
+   74353    5.24%  isArrow
+   55196    3.89%  referencedMemberDecl
+   16787    1.18%  castKind
+
+SCALAR FIELD VALUES
+--------------------------------------------------------------------------------
+
+[castKind]
+      5781  BitCast
+      3905  NoOp
+      3285  ToVoid
+      2150  Dependent
+       687  ConstructorConversion
+       650  NullToPointer
+       245  IntegralToFloating
+        41  IntegralCast
+        21  FloatingToIntegral
+         8  PointerToIntegral
+         8  BaseToDerived
+         6  FloatingCast
+
+[id]
+      1112  0x2a43bd05b00
+       781  0x2a43bd06240
+       688  0x2a43bd05b40
+       613  0x2a43bd05c80
+       576  0x231c8cf5b00
+       505  0x2a4412be770
+       504  0x2a43bdcc400
+       500  0x2a43f861100
+       451  0x27d5bd45b00
+       451  0x15e2b199f60
+       449  0x20257f14a10
+       442  0x2820ce15b00
+       442  0x1f114e75b00
+       442  0x1f24ad45b00
+       421  0x24712ac5b00
+       421  0x234422e5b00
+       421  0x1b27a505b00
+       421  0x18d735a5b00
+       421  0x225581e5b00
+       421  0x254448a5b00
+       421  0x232d14c5b00
+       421  0x1faf9d25b00
+       421  0x227c5985b00
+       409  0x231c8cf5c80
+       396  0x15e272a5aa0
+       392  0x2024f505aa0
+       388  0x1d4a2ad5aa0
+       388  0x22c57a95aa0
+       388  0x1b150755aa0
+       388  0x277ff035aa0
+
+[isArrow]
+     40497  True
+     33856  False
+
+[kind]
+    215271  DeclRefExpr
+    139241  VarDecl
+    114794  ParmVarDecl
+     58985  IntegerLiteral
+     58880  BinaryOperator
+     57045  FunctionDecl
+     55196  MemberExpr
+     51451  CompoundStmt
+     48510  CallExpr
+     37724  CXXMethodDecl
+     30639  CXXThisExpr
+     28843  UnaryOperator
+     27296  ReturnStmt
+     26892  CXXOperatorCallExpr
+     25782  ParenExpr
+     24718  DeclStmt
+     21793  StringLiteral
+     19627  BuiltinType
+     19157  CXXDependentScopeMemberExpr
+     18677  CXXMemberCallExpr
+     18673  PointerType
+     18188  TypedefType
+     16338  RecordType
+     14429  CaseStmt
+     13343  CXXRecordDecl
+     13084  IfStmt
+     11639  EnumConstantDecl
+     10894  TypedefDecl
+     10379  TemplateTypeParmDecl
+     10313  CStyleCastExpr
+
+[opcode]
+     12721  !
+     11846  =
+      7579  *
+      6443  -
+      6230  ++
+      5254  ==
+      4976  +
+      4956  ||
+      4749  <
+      4216  &
+      3827  &&
+      2552  <=
+      2551  ,
+      1778  !=
+      1660  /
+      1385  +=
+      1179  >=
+      1087  >
+       933  >>
+       799  --
+       722  %
+       701  <<
+       653  |
+       265  ^
+       255  -=
+       177  /=
+       122  *=
+        36  ^=
+        28  ~
+        28  %=
+
+[referencedMemberDecl]
+       278  0x27d611e3780
+       278  0x2820cf4d220
+       278  0x24712e818f0
+       278  0x1f114f9d220
+       278  0x234426b18f0
+       278  0x1b27a8c18f0
+       278  0x18d7397a900
+       278  0x225585a18f0
+       278  0x25444c718f0
+       278  0x1f24ae6d220
+       278  0x232d18aa900
+       278  0x1fafa0e55d0
+       278  0x227c5d418f0
+       269  0x1d4acbc7248
+       269  0x22c6186aa48
+       269  0x15e2c6f31b8
+       269  0x202592caa48
+       269  0x1b15a52aa48
+       269  0x27788deaa48
+       254  0x2a4412be3e8
+       253  0x2a4412be328
+       248  0x1d4ae174328
+       248  0x22c62e21978
+       248  0x15e2e0e5af8
+       248  0x2025afbca78
+       248  0x1b15baeb118
+       248  0x2778a4b4fe8
+       232  0x15e2c9b3158
+       201  0x202595fb138
+       181  0x15e2c9b1868
