@@ -9,8 +9,8 @@ OUTPUT_DIR = PROJECT_ROOT/"data"/"c_cpp"/"cut_asts"
 
 FORCE_REBUILD = False
 
-from gnn_ai_code_detector.preprocess import ClangASTConverter
-converter = ClangASTConverter("")
+from gnn_ai_code_detector.preprocess import CCppPreprocessor
+converter = CCppPreprocessor("")
 
 def process_file(raw_path: Path):
     output_path = OUTPUT_DIR/raw_path.name

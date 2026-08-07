@@ -5,7 +5,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import pandas as pd
 
-from gnn_ai_code_detector.preprocess import ClangASTConverter
+from gnn_ai_code_detector.preprocess import CCppPreprocessor
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
@@ -26,7 +26,7 @@ def process_sample(args):
     if output_path.exists() and not force_rebuild:
         return df_id, "skipped"
 
-    converter = ClangASTConverter()
+    converter = CCppPreprocessor()
 
     suffix = ".c" if language == "C" else ".cpp"
 

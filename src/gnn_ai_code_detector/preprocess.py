@@ -12,7 +12,7 @@ class Edge(Enum):
     REFERENCE = 2
     USAGE = 3
 
-class ClangASTConverter:
+class CCppPreprocessor:
     C_PREAMBLE = """
     #include <assert.h>
     #include <ctype.h>
