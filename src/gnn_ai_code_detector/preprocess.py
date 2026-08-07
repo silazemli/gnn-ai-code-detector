@@ -143,10 +143,7 @@ class ClangASTConverter:
                     if key in self.RELEVANT_METADATA
                 }
             elif isinstance(value, list):
-                return [
-                    clean(item)
-                    for item in value
-                ]
+                return [clean(item) for item in value]
             else:
                 return value
 
@@ -173,6 +170,7 @@ class ClangASTConverter:
             node["inner"] = children
         
         clean(ast)
+
         return ast
 
     def construct_graph(self, ast: dict):
@@ -191,24 +189,21 @@ class ClangASTConverter:
 
             referenced_decl: dict = node.get("referencedDecl", {})
             if referenced_decl:
-                reference_id = referenced_decl.get("id")
-                if reference_id is not None: # is this check redundant? most likely
+                reference_id = referenced_decl.get("id", "")
+                if reference_id: # is this check redundant? most likely
                     edges["references"].append(reference_id)
 
             referenced_member_decl: str = node.get("referencedMemberDecl", "")
             if referenced_member_decl:
-                reference_id = referenced_member_decl.get("id")
-                if reference_id is not None:
-                    edges["references"].append(reference_id)
+                edges["references"].append(reference_id)
 
-            graph[node_id] = {
-                "edges": edges,
-                "features": features
-            }
+            graph[node_id] = {"edges": edges, "features": features}
 
             for child in node.get("inner", []):
                 child_id = child["id"]
+
                 edges["children"].append(child_id)
+
                 visit(child)
 
         visit(ast)
@@ -226,29 +221,29 @@ class ClangASTConverter:
             ]
 
         return graph
-    
-    def _walk(self, node: dict):
-        if isinstance(node, dict):
-            if "kind" in node:
-                yield node
-
-            for value in node.values():
-                yield from self._walk(value)
-
-        elif isinstance(node, list):
-            for item in node:
-                yield from self._walk(item)
                 
     def build_vocabularies(self, ast_dir: Path) -> dict:
         kinds = set()
         opcodes = set()
         cast_kinds = set()
 
+        def walk(node: dict):
+            if isinstance(node, dict):
+                if "kind" in node:
+                    yield node
+
+                for value in node.values():
+                    yield from walk(value)
+
+            elif isinstance(node, list):
+                for item in node:
+                    yield from walk(item)
+                
         for path in ast_dir.glob("*.json"):
             with path.open("r", encoding="utf-8") as f:
                 ast = json.load(f)
 
-            for node in self._walk(ast):
+            for node in walk(ast):
                 kinds.add(node["kind"])
 
                 if "opcode" in node:
@@ -270,10 +265,7 @@ class ClangASTConverter:
         }
 
     def construct_pyg_data(self, graph: dict, vocab: dict):
-        node_to_idx = {
-            node_id: idx
-            for idx, node_id in enumerate(graph)
-        }
+        node_to_idx = {node_id: idx for idx, node_id in enumerate(graph)}
 
         edges = []
         edge_types = []
@@ -283,29 +275,18 @@ class ClangASTConverter:
         cast_kinds = []
         is_arrows = []
 
-        def add_edge(src, dst, edge_type):
-            edges.append(src, dst)
+        def add_edge(src, dst, edge_type: Edge):
+            edges.append((src, dst))
             edge_types.append(edge_type.value)
 
         for node_id, node in graph.items():
             src = node_to_idx[node_id]
             features = node["features"]
 
-            kinds.append(
-                vocab["kind"].get(features["kind"], vocab["kind"]["<UNK>"])
-            )
-
-            opcodes.append(
-                vocab["opcode"].get(features.get("opcode"), vocab["opcode"]["<NONE>"])
-            )
-
-            cast_kinds.append(
-                vocab["castKind"].get(features.get("castKind"), vocab["castKind"]["<NONE>"])
-            )
-
-            is_arrows.append(
-                features.get("isArrow", False)
-            )
+            kinds.append(vocab["kind"].get(features["kind"], vocab["kind"]["<UNK>"]))
+            opcodes.append(vocab["opcode"].get(features.get("opcode"), vocab["opcode"]["<NONE>"]))
+            cast_kinds.append(vocab["castKind"].get(features.get("castKind"), vocab["castKind"]["<NONE>"]))
+            is_arrows.append(features.get("isArrow", False))
 
             for child_id in node["edges"]["children"]:
                 dst = node_to_idx[child_id]
@@ -319,38 +300,16 @@ class ClangASTConverter:
                 add_edge(src, dst, Edge.REFERENCE)
                 add_edge(dst, src, Edge.USAGE)
 
-        edge_index = torch.tensor(
-            edges,
-            dtype=torch.long
-        ).t().contiguous()
+        edge_index = torch.tensor(edges, dtype=torch.long).t().contiguous()
+        edge_type = torch.tensor(edge_types, dtype=torch.long)
 
-        edge_type = torch.tensor(
-            edge_types,
-            dtype=torch.long
-        )
-
-        kind_id = vocab["kind"].get(
-            node["features"]["kind"],
-            vocab["kind"]["<UNK>"]
-        )
-
-        opcode_id = vocab["opcode"].get(
-            node["features"].get("opcode"),
-            vocab["opcode"]["<NONE>"]
-        )
-
-        cast_kind_id = vocab["castKind"].get(
-            node["features"].get("castKind"),
-            vocab["castKind"]["<NONE>"]
-        )
-
-        is_arrow = node["features"].get("isArrow", False)
+        kind = torch.tensor(kinds, dtype=torch.long)
+        opcode = torch.tensor(opcodes, dtype=torch.long)
+        cast_kind = torch.tensor(cast_kinds, dtype=torch.long)
+        is_arrow = torch.tensor(is_arrows, dtype=torch.bool)
 
         return Data(
-            kind=kind,
-            opcode=opcode,
-            cast_kind=cast_kind,
-            is_arrow=is_arrow,
-            edge_index=edge_index,
-            edge_type=edge_type,
+            kind=kind, opcode=opcode,
+            cast_kind=cast_kind, is_arrow=is_arrow,
+            edge_index=edge_index, edge_type=edge_type,
         )
