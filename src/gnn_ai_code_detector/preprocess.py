@@ -1,10 +1,12 @@
-from __future__ import annotations
-import torch
-from torch_geometric.data import Data
 from pathlib import Path
 import json
 import subprocess
 from enum import Enum
+
+import torch
+from torch_geometric.data import Data
+
+from gnn_ai_code_detector.dataset import CCppDataset
 
 class Edge(Enum):
     CHILD = 0
@@ -195,7 +197,7 @@ class CCppPreprocessor:
 
             referenced_member_decl: str = node.get("referencedMemberDecl", "")
             if referenced_member_decl:
-                edges["references"].append(reference_id)
+                edges["references"].append(referenced_member_decl)
 
             graph[node_id] = {"edges": edges, "features": features}
 
@@ -222,7 +224,7 @@ class CCppPreprocessor:
 
         return graph
                 
-    def build_vocabularies(self, ast_dir: Path) -> dict:
+    def build_vocabularies(self, dataset: CCppDataset) -> dict:
         kinds = set()
         opcodes = set()
         cast_kinds = set()
@@ -239,7 +241,7 @@ class CCppPreprocessor:
                 for item in node:
                     yield from walk(item)
                 
-        for path in ast_dir.glob("*.json"):
+        for path in dataset.ast_paths():
             with path.open("r", encoding="utf-8") as f:
                 ast = json.load(f)
 

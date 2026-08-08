@@ -1,5 +1,4 @@
 from pathlib import Path
-
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
@@ -22,6 +21,7 @@ def get_huvsai_split(
     problem_df = df[["problem_id"]].drop_duplicates()
 
     # no stratification because the original dataset is balanced
+    # hopefully
     train_problems, test_problems = train_test_split(
         problem_df, test_size=0.2,
         random_state=random_state
@@ -41,6 +41,7 @@ def get_huvsai_split(
     return train_indices, test_indices
 
 if __name__ == "__main__":
+    # verify class balance by the number of samples
     PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
     DATASET_PATH = (
