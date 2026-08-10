@@ -6,8 +6,6 @@ from enum import Enum
 import torch
 from torch_geometric.data import Data
 
-from gnn_ai_code_detector.dataset import CCppDataset
-
 class Edge(Enum):
     CHILD = 0
     PARENT = 1
@@ -115,7 +113,7 @@ class CCppPreprocessor:
 
         return preamble + "\n" + source
     
-    def cut_irrelevant_branches(self, ast: dict) -> dict:
+    def prune(self, ast: dict) -> dict:
         def irrelevant(node: dict) -> bool:
             return ( # remove
                 # compiler-generated definitions
@@ -224,7 +222,7 @@ class CCppPreprocessor:
 
         return graph
                 
-    def build_vocabularies(self, dataset: CCppDataset) -> dict:
+    def build_vocabularies(self, dataset) -> dict:
         kinds = set()
         opcodes = set()
         cast_kinds = set()
@@ -263,7 +261,7 @@ class CCppPreprocessor:
         return {
             "kind": make_vocab(kinds, "<UNK>"),
             "opcode": make_vocab(opcodes, "<NONE>"),
-            "castKind": make_vocab(cast_kinds, "<NONE>"),
+            "cast_kind": make_vocab(cast_kinds, "<NONE>"),
         }
 
     def construct_pyg_data(self, graph: dict, vocab: dict):
@@ -285,9 +283,9 @@ class CCppPreprocessor:
             src = node_to_idx[node_id]
             features = node["features"]
 
-            kinds.append(vocab["kind"].get(features["kind"], vocab["kind"]["<UNK>"]))
+            kinds.append(vocab["kind"].get(features.get("kind"), vocab["kind"]["<UNK>"]))
             opcodes.append(vocab["opcode"].get(features.get("opcode"), vocab["opcode"]["<NONE>"]))
-            cast_kinds.append(vocab["castKind"].get(features.get("castKind"), vocab["castKind"]["<NONE>"]))
+            cast_kinds.append(vocab["cast_kind"].get(features.get("castKind"), vocab["cast_kind"]["<NONE>"]))
             is_arrows.append(features.get("isArrow", False))
 
             for child_id in node["edges"]["children"]:
@@ -311,7 +309,12 @@ class CCppPreprocessor:
         is_arrow = torch.tensor(is_arrows, dtype=torch.bool)
 
         return Data(
-            kind=kind, opcode=opcode,
-            cast_kind=cast_kind, is_arrow=is_arrow,
-            edge_index=edge_index, edge_type=edge_type,
+            kind=kind,
+            opcode=opcode,
+            cast_kind=cast_kind,
+            is_arrow=is_arrow,
+            edge_index=edge_index,
+            edge_type=edge_type,
+            num_nodes=len(node_to_idx)
         )
+

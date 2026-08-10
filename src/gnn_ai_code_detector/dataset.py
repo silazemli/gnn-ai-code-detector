@@ -1,8 +1,10 @@
-from pathlib import Path
-import json
-
+import torch
 from torch.utils.data import Dataset
 from torch_geometric.data import Data
+
+from pathlib import Path
+import json
+import pandas as pd
 
 from gnn_ai_code_detector.preprocess import CCppPreprocessor
 
@@ -11,11 +13,17 @@ class CCppDataset(Dataset):
             self,
             indices: list[int],
             ast_dir: Path,
+            csv_path: Path,
             preprocessor: CCppPreprocessor,
             vocab: dict | None = None
             ):
         self.indices = indices
         self.ast_dir = ast_dir
+        self.labels = {
+            index: 0 if generated == "Human" else 1
+            for index, generated
+            in pd.read_csv(csv_path)["Generated"].items()
+        }
         self.preprocessor = preprocessor
         self.vocab = vocab
 
@@ -36,9 +44,13 @@ class CCppDataset(Dataset):
 
         graph = self.preprocessor.construct_graph(ast)
 
+        graph = self.preprocessor.handle_external_references(graph)
+
         if self.vocab is None:
             raise RuntimeError("Vocabulary missing.")
 
         pyg_data = self.preprocessor.construct_pyg_data(graph, self.vocab)
+
+        pyg_data.y = torch.tensor(self.labels[row_idx], dtype=torch.long)
 
         return pyg_data

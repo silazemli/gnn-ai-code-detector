@@ -4,6 +4,7 @@ from sklearn.model_selection import train_test_split
 
 def get_huvsai_split(
         csv_path: Path,
+        ast_dir: Path,
         language: str,
         random_state: int = 42,
     ):
@@ -17,6 +18,8 @@ def get_huvsai_split(
         raise ValueError("Unrecognised language")
 
     df = df[df["Language"].isin(langs)].copy()
+
+    df = df[df.index.map(lambda index: (ast_dir/f"{index}.json").exists())].copy()
 
     problem_df = df[["problem_id"]].drop_duplicates()
 
@@ -44,11 +47,11 @@ if __name__ == "__main__":
     # verify class balance by the number of samples
     PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-    DATASET_PATH = (
-        PROJECT_ROOT/"data"/"Code_Dataset"/"HumanVsAi_CodeDataset.csv"
-    )
+    DATASET_PATH = PROJECT_ROOT/"data"/"Code_Dataset"/"HumanVsAi_CodeDataset.csv"
 
-    train, test = get_huvsai_split(DATASET_PATH, "C/C++")
+    AST_DIR = PROJECT_ROOT/"data"/"c_cpp"/"raw_asts"
+
+    train, test = get_huvsai_split(DATASET_PATH, AST_DIR, "C/C++")
     df = pd.read_csv(DATASET_PATH)
 
     train_df = df.loc[train]

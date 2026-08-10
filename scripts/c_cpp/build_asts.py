@@ -61,6 +61,7 @@ def build_asts(
 
     c_cpp_df = df[df["Language"].isin(["C", "C++"])]
 
+    print("Building ASTs from CSV")
     print(f"Found {len(c_cpp_df)} samples.")
 
     successes = 0
@@ -97,7 +98,7 @@ def build_asts(
 
             if i % 100 == 0 or i == len(c_cpp_df):
                 print(
-                    f"[{i}/{len(c_cpp_df)}] "
+                    f"[{i:d4}/{len(c_cpp_df)}] "
                     f"success={successes}, "
                     f"skipped={skipped}, "
                     f"failed={failures}"

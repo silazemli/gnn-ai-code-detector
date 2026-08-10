@@ -9,9 +9,10 @@ def cut_asts(
     force_rebuild: bool = False,
     workers: int = 8,
 ):
+    print("Pruning ASTs.")
     run_ast_pipeline(
         input_dir, output_dir, force_rebuild,
-        [preprocessor.cut_irrelevant_branches],
+        [preprocessor.prune],
         workers
     )
 

@@ -7,7 +7,7 @@ from typing import Callable
 
 def process_ast(
         input_path: Path, output_path: Path,
-        force_rebuild: bool, transforms: list[Callable]
+        transforms: list[Callable], force_rebuild: bool
     ):
     if output_path.exists() and not force_rebuild:
         return input_path.name, "skipped"
@@ -65,7 +65,7 @@ def run_ast_pipeline(
 
                 if i % 100 == 0 or i == len(files):
                     print(
-                        f"[{i}/{len(files)}] "
+                        f"[{i:4d}/{len(files)}] "
                         f"processed={processed}, "
                         f"skipped={skipped}, "
                         f"failed={failed}"

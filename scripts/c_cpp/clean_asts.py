@@ -10,6 +10,7 @@ def clean_asts(
     force_rebuild: bool = False,
     workers: int = 8,
 ):
+    print("Cleaning ASTs.")
     run_ast_pipeline(
         input_dir, output_dir, force_rebuild,
         [preprocessor.remove_irrelevant_nodes, preprocessor.remove_metadata],
