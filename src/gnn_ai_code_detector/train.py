@@ -147,10 +147,10 @@ if __name__ == "__main__":
     EMBEDDING_DIMS = {
         "kind": 32,
         "opcode": 16,
-        "cast_kind": 8
+        "castKind": 8
     }
 
-    BOOL_FEATURES = ["is_arrow"]
+    BOOL_FEATURES = ["isArrow"]
 
     from gnn_ai_code_detector.preprocess import Edge
     NUM_RELATIONS = len(Edge)

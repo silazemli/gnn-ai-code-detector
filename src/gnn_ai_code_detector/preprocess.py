@@ -13,30 +13,15 @@ class Edge(Enum):
     USAGE = 3
 
 class CCppPreprocessor:
-    C_PREAMBLE = """
-    #include <assert.h>
-    #include <ctype.h>
-    #include <math.h>
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <string.h>
-    """
+    C_PREAMBLE = "".join(f"#include <{lib}.h>\n" for lib in [
+        "assert", "ctype", "math", "stdio", "stdlib", "string"
+    ])
 
-    CPP_PREAMBLE = """
-    #include <algorithm>
-    #include <cmath>
-    #include <cstdio>
-    #include <cstdlib>
-    #include <cstring>
-    #include <cstdint>
-    #include <iostream>
-    #include <map>
-    #include <set>
-    #include <string>
-    #include <unordered_map>
-    #include <unordered_set>
-    #include <vector>
-    """
+    CPP_PREAMBLE = "".join(f"include <{lib}>\n" for lib in [
+        "algorithm", "cmath", "cstdio", "cstdlib", "cstring",
+        "cstdint", "iostream", "map", "set", "string",
+        "unordered_map", "unordered_set", "vector"
+    ])
 
     CLANG_ARGS = [
         "--target=x86_64-w64-windows-gnu",
@@ -63,10 +48,9 @@ class CCppPreprocessor:
     ]
 
     RELEVANT_METADATA = {
-        "kind", "inner", "opcode",
-        "isArrow", "castKind", "id",
-        "referencedDecl",
-        "referencedMemberDecl"
+        "id", "referencedDecl", "referencedMemberDecl",
+        "inner",
+        "kind", "opcode", "isArrow", "castKind",
     }
 
     NODES_TO_REMOVE = {
@@ -87,10 +71,11 @@ class CCppPreprocessor:
         "DependentScopeDeclRefExpr"
     }
 
-    NODE_FEATURES = {
-        "kind", "opcode",
-        "castKind", "isArrow"
-    }
+    BOOL_FEATURES = ("isArrow", )
+
+    EMBEDDED_FEATURES = {"kind", "opcode", "castKind"}
+
+    NODE_FEATURES = set(BOOL_FEATURES) | EMBEDDED_FEATURES
 
     def __init__(self, clang_path: str = "clang"):
         self.clang_path = clang_path
@@ -197,13 +182,14 @@ class CCppPreprocessor:
             if referenced_member_decl:
                 edges["references"].append(referenced_member_decl)
 
-            graph[node_id] = {"edges": edges, "features": features}
+            graph[node_id] = {
+                "edges": edges,
+                "features": features
+            }
 
             for child in node.get("inner", []):
                 child_id = child["id"]
-
                 edges["children"].append(child_id)
-
                 visit(child)
 
         visit(ast)
@@ -223,9 +209,7 @@ class CCppPreprocessor:
         return graph
                 
     def build_vocabularies(self, dataset) -> dict:
-        kinds = set()
-        opcodes = set()
-        cast_kinds = set()
+        values = {feature: set() for feature in self.EMBEDDED_FEATURES}
 
         def walk(node: dict):
             if isinstance(node, dict):
@@ -244,24 +228,16 @@ class CCppPreprocessor:
                 ast = json.load(f)
 
             for node in walk(ast):
-                kinds.add(node["kind"])
-
-                if "opcode" in node:
-                    opcodes.add(node["opcode"])
-
-                if "castKind" in node:
-                    cast_kinds.add(node["castKind"])
-
-        def make_vocab(values, special):
-            vocab = {special: 0}
-            for value in sorted(values):
-                vocab[value] = len(vocab)
-            return vocab
+                for feature in self.EMBEDDED_FEATURES:
+                    if feature in node:
+                        values[feature].add(node[feature])
 
         return {
-            "kind": make_vocab(kinds, "<UNK>"),
-            "opcode": make_vocab(opcodes, "<NONE>"),
-            "cast_kind": make_vocab(cast_kinds, "<NONE>"),
+            feature: {
+                value: i
+                for i, value in enumerate(sorted(feature_values), start=1)
+            } | {"<NONE>": 0} 
+            for feature, feature_values in values.items()
         }
 
     def construct_pyg_data(self, graph: dict, vocab: dict):
@@ -270,10 +246,8 @@ class CCppPreprocessor:
         edges = []
         edge_types = []
 
-        kinds = []
-        opcodes = []
-        cast_kinds = []
-        is_arrows = []
+        embedded = {feat: [] for feat in self.EMBEDDED_FEATURES}
+        boolean =  {feat: [] for feat in self.BOOL_FEATURES}
 
         def add_edge(src, dst, edge_type: Edge):
             edges.append((src, dst))
@@ -281,40 +255,37 @@ class CCppPreprocessor:
 
         for node_id, node in graph.items():
             src = node_to_idx[node_id]
-            features = node["features"]
+            feats = node["features"]
 
-            kinds.append(vocab["kind"].get(features.get("kind"), vocab["kind"]["<UNK>"]))
-            opcodes.append(vocab["opcode"].get(features.get("opcode"), vocab["opcode"]["<NONE>"]))
-            cast_kinds.append(vocab["cast_kind"].get(features.get("castKind"), vocab["cast_kind"]["<NONE>"]))
-            is_arrows.append(features.get("isArrow", False))
+            for feat in self.EMBEDDED_FEATURES:
+                    embedded[feat].append(vocab[feat].get(feats.get(feat), vocab[feat]["<NONE>"]))
 
+            for feat in self.BOOL_FEATURES:
+                boolean[feat].append(feats.get(feat, False))
+            
             for child_id in node["edges"]["children"]:
                 dst = node_to_idx[child_id]
-
                 add_edge(src, dst, Edge.CHILD)
                 add_edge(dst, src, Edge.PARENT)
 
             for reference_id in node["edges"]["references"]:
                 dst = node_to_idx[reference_id]
-
                 add_edge(src, dst, Edge.REFERENCE)
                 add_edge(dst, src, Edge.USAGE)
 
-        edge_index = torch.tensor(edges, dtype=torch.long).t().contiguous()
-        edge_type = torch.tensor(edge_types, dtype=torch.long)
-
-        kind = torch.tensor(kinds, dtype=torch.long)
-        opcode = torch.tensor(opcodes, dtype=torch.long)
-        cast_kind = torch.tensor(cast_kinds, dtype=torch.long)
-        is_arrow = torch.tensor(is_arrows, dtype=torch.bool)
+        edge_index = torch.tensor(edges,      dtype=torch.long).t().contiguous()
+        edge_type =  torch.tensor(edge_types, dtype=torch.long)
 
         return Data(
-            kind=kind,
-            opcode=opcode,
-            cast_kind=cast_kind,
-            is_arrow=is_arrow,
-            edge_index=edge_index,
-            edge_type=edge_type,
+            **{
+                feat: torch.tensor(val, dtype=torch.long)
+                for feat, val in embedded.items()
+            },
+            **{
+                feat: torch.tensor(val, dtype=torch.bool)
+                for feat, val in boolean.items()
+            },
+            edge_index=torch.tensor(edges,      dtype=torch.long).t().contiguous(),
+            edge_type= torch.tensor(edge_types, dtype=torch.long),
             num_nodes=len(node_to_idx)
         )
-
