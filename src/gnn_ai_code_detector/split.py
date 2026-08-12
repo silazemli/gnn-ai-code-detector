@@ -3,15 +3,18 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 def get_huvsai_split(
-        csv_path: Path,
+        df: pd.DataFrame,
         ast_dir: Path,
         language: str,
+        test_size: float = 0.2,
         random_state: int = 42,
     ):
-    df = pd.read_csv(csv_path)
-
-    if language == "C/C++":
+    if language == "CC++":
         langs = ["C", "C++"]
+    elif language == "C":
+        langs = ["C"]
+    elif language == "C++":
+        langs = ["C++"]
     elif language == "Python":
         langs = ["Python"]
     else:
@@ -23,10 +26,8 @@ def get_huvsai_split(
 
     problem_df = df[["problem_id"]].drop_duplicates()
 
-    # no stratification because the original dataset is balanced
-    # hopefully
     train_problems, test_problems = train_test_split(
-        problem_df, test_size=0.2,
+        problem_df, test_size=test_size,
         random_state=random_state
     )
 
@@ -42,25 +43,3 @@ def get_huvsai_split(
     ].index.tolist()
 
     return train_indices, test_indices
-
-if __name__ == "__main__":
-    # verify class balance by the number of samples
-    PROJECT_ROOT = Path(__file__).resolve().parents[2]
-
-    DATASET_PATH = PROJECT_ROOT/"data"/"Code_Dataset"/"HumanVsAi_CodeDataset.csv"
-
-    AST_DIR = PROJECT_ROOT/"data"/"c_cpp"/"raw_asts"
-
-    train, test = get_huvsai_split(DATASET_PATH, AST_DIR, "C/C++")
-    df = pd.read_csv(DATASET_PATH)
-
-    train_df = df.loc[train]
-    test_df = df.loc[test]
-
-    print("TRAIN")
-    print(train_df["Generated"].value_counts())
-    print(train_df["Generated"].value_counts(normalize=True))
-
-    print("\nTEST")
-    print(test_df["Generated"].value_counts())
-    print(test_df["Generated"].value_counts(normalize=True))
