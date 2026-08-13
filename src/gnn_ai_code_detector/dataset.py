@@ -13,7 +13,7 @@ class CCppDataset(Dataset):
             self,
             indices: list[int],
             ast_dir: Path,
-            csv_path: Path,
+            dataset: pd.DataFrame,
             preprocessor: CCppPreprocessor,
             vocab: dict | None = None
             ):
@@ -22,7 +22,7 @@ class CCppDataset(Dataset):
         self.labels = {
             index: 0 if generated == "Human" else 1
             for index, generated
-            in pd.read_csv(csv_path)["Generated"].items()
+            in dataset["Generated"].items()
         }
         self.preprocessor = preprocessor
         self.vocab = vocab

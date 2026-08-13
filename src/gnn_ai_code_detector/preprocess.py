@@ -17,7 +17,7 @@ class CCppPreprocessor:
         "assert", "ctype", "math", "stdio", "stdlib", "string"
     ])
 
-    CPP_PREAMBLE = "".join(f"include <{lib}>\n" for lib in [
+    CPP_PREAMBLE = "".join(f"#include <{lib}>\n" for lib in [
         "algorithm", "cmath", "cstdio", "cstdlib", "cstring",
         "cstdint", "iostream", "map", "set", "string",
         "unordered_map", "unordered_set", "vector"
@@ -273,9 +273,6 @@ class CCppPreprocessor:
                 add_edge(src, dst, Edge.REFERENCE)
                 add_edge(dst, src, Edge.USAGE)
 
-        edge_index = torch.tensor(edges,      dtype=torch.long).t().contiguous()
-        edge_type =  torch.tensor(edge_types, dtype=torch.long)
-
         return Data(
             **{
                 feat: torch.tensor(val, dtype=torch.long)
@@ -285,7 +282,7 @@ class CCppPreprocessor:
                 feat: torch.tensor(val, dtype=torch.bool)
                 for feat, val in boolean.items()
             },
-            edge_index=torch.tensor(edges,      dtype=torch.long).t().contiguous(),
-            edge_type= torch.tensor(edge_types, dtype=torch.long),
+            edge_index=torch.tensor(edges, dtype=torch.long).t().contiguous(),
+            edge_type=torch.tensor(edge_types, dtype=torch.long),
             num_nodes=len(node_to_idx)
         )

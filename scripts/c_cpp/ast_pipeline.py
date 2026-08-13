@@ -66,9 +66,9 @@ def run_ast_pipeline(
                 if i % 100 == 0 or i == len(files):
                     print(
                         f"[{i:4d}/{len(files)}] "
-                        f"processed={processed}, "
+                        f"success={processed}, "
                         f"skipped={skipped}, "
-                        f"failed={failed}"
+                        f"failed ={failed}"
                     )
 
             except Exception as e:

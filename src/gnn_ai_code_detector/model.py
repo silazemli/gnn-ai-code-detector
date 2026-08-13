@@ -63,7 +63,7 @@ class CCppGNN(nn.Module):
 
         x = self.conv1(x, data.edge_index, data.edge_type)
         x = torch.relu(x)
-        # x = torch.dropout(x)
+        x = self.dropout(x)
 
         x = self.conv2(x, data.edge_index, data.edge_type)
         x = torch.relu(x)

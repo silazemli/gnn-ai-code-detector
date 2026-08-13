@@ -1,26 +1,26 @@
 #include <stdio.h>
 
-#define SQUARE(x) ((x) * (x))
+#define MACRO_EXAMPLE(x) ((x) + (x))
 
-typedef int MyInt;
+typedef int TypeExample;
 
-struct Point {
+struct StructExample {
     int x;
     int y;
 };
 
-static int global_counter = 42;
+static int global_variable_example = 42;
 
-int add(int a, int b) {
+int function_example(int a, int b) {
     return a + b;
 }
 
-static int helper(const struct Point *p) {
-    return SQUARE(p->x) + p->y;
+static int static_function_example(const struct StructExample *se) {
+    return MACRO_EXAMPLE(se->x) + se->y;
 }
 
 int main(void) {
-    int result = add(2, 3);
+    int result = function_example(2, 3);
 
     if (result > 4) {
         printf("%d\n", result);

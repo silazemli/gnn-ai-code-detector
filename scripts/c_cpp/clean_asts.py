@@ -29,5 +29,5 @@ if __name__ == "__main__":
     clean_asts(
         INPUT_DIR, OUTPUT_DIR,
         CCppPreprocessor(),
-        FORCE_REBUILD,
+        FORCE_REBUILD
     )

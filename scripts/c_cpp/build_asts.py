@@ -101,7 +101,7 @@ def build_asts(
                     f"[{i:d4}/{len(c_cpp_df)}] "
                     f"success={successes}, "
                     f"skipped={skipped}, "
-                    f"failed={failures}"
+                    f"failed ={failures}"
                 )
 
 
