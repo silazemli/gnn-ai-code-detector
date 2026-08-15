@@ -80,15 +80,24 @@ class CCppPreprocessor:
     def __init__(self, clang_path: str = "clang"):
         self.clang_path = clang_path
 
-    def build_ast(self, path: Path) -> dict:
-        result = subprocess.run(
-            [self.clang_path, *self.CLANG_ARGS, str(path)],
-            capture_output=True, text=True, check=True,
-        )
+    def build_ast(self, source: str, language: str) -> dict:
+        source = self._append_headers(source, language)
 
+        result = subprocess.run(
+            [
+                self.clang_path,
+                *self.CLANG_ARGS,
+                "-x", "c++" if language == "C++" else "c",
+                "-",
+            ],
+            input=source,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
         return json.loads(result.stdout)
 
-    def append_headers(self, source: str, language: str) -> str:
+    def _append_headers(self, source: str, language: str) -> str:
         if language == "C":
             preamble = self.C_PREAMBLE
         elif language == "C++":
@@ -194,9 +203,11 @@ class CCppPreprocessor:
 
         visit(ast)
 
+        self._handle_external_references(graph)
+
         return graph
 
-    def handle_external_references(self, graph: dict) -> dict:
+    def _handle_external_references(self, graph: dict):
         node_ids = set(graph)
 
         for data in graph.values():
@@ -205,8 +216,6 @@ class CCppPreprocessor:
                 for reference in data["edges"]["references"]
                 if reference in node_ids
             ]
-
-        return graph
                 
     def build_vocabularies(self, dataset) -> dict:
         values = {feature: set() for feature in self.EMBEDDED_FEATURES}
@@ -240,7 +249,7 @@ class CCppPreprocessor:
             for feature, feature_values in values.items()
         }
 
-    def construct_pyg_data(self, graph: dict, vocab: dict):
+    def construct_pyg_data(self, graph: dict, vocab: dict) -> Data:
         node_to_idx = {node_id: idx for idx, node_id in enumerate(graph)}
 
         edges = []

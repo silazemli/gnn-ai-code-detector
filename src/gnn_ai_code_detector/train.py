@@ -154,8 +154,8 @@ if __name__ == "__main__":
         from scripts.c_cpp.build_asts import build_asts
         build_asts(CSV_PATH, RAW_AST_DIR, preprocessor, True, WORKERS)
     if CUT_ASTS:
-        from scripts.c_cpp.cut_asts import cut_asts
-        cut_asts(RAW_AST_DIR, CUT_AST_DIR, preprocessor, True, WORKERS)
+        from scripts.c_cpp.prune_asts import prune_asts
+        prune_asts(RAW_AST_DIR, CUT_AST_DIR, preprocessor, True, WORKERS)
     if CLEAN_ASTS:
         from scripts.c_cpp.clean_asts import clean_asts
         clean_asts(CUT_AST_DIR, CLEAN_AST_DIR, preprocessor, True, WORKERS)

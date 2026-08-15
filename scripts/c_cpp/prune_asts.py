@@ -3,7 +3,7 @@ from pathlib import Path
 from .ast_pipeline import run_ast_pipeline
 from gnn_ai_code_detector.preprocess import CCppPreprocessor
 
-def cut_asts(
+def prune_asts(
     input_dir: Path, output_dir: Path,
     preprocessor: CCppPreprocessor,
     force_rebuild: bool = False,
@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     FORCE_REBUILD = False
 
-    cut_asts(
+    prune_asts(
         INPUT_DIR, OUTPUT_DIR,
         CCppPreprocessor(),
         FORCE_REBUILD,

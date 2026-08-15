@@ -44,8 +44,6 @@ class CCppDataset(Dataset):
 
         graph = self.preprocessor.construct_graph(ast)
 
-        graph = self.preprocessor.handle_external_references(graph)
-
         if self.vocab is None:
             raise RuntimeError("Vocabulary missing.")
 

@@ -1,6 +1,5 @@
 from pathlib import Path
 import json
-import tempfile
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import pandas as pd
@@ -8,34 +7,21 @@ import pandas as pd
 from gnn_ai_code_detector.preprocess import CCppPreprocessor
 
 def process_sample(
-        df_id: int, source: str, 
-        language: str, output_dir: Path,
-        force_rebuild: bool, preprocessor: CCppPreprocessor):
+        df_id: int,
+        source: str, 
+        language: str,
+        output_dir: Path,
+        force_rebuild: bool,
+        preprocessor: CCppPreprocessor
+    ):
     
     output_path = output_dir/f"{df_id}.json"
 
     if output_path.exists() and not force_rebuild:
         return df_id, "skipped"
 
-    suffix = ".c" if language == "C" else ".cpp"
-
-    temp_path = None
-
     try:
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            suffix=suffix,
-            encoding="utf-8",
-            delete=False,
-        ) as temp_file:
-            temp_path = Path(temp_file.name)
-            temp_file.write(
-                preprocessor.append_headers(
-                    source, language
-                )
-            )
-
-        ast = preprocessor.build_ast(temp_path)
+        ast = preprocessor.build_ast(source, language)
 
         with output_path.open("w", encoding="utf-8") as f:
             json.dump(ast, f)
@@ -44,10 +30,6 @@ def process_sample(
 
     except Exception as e:
         return df_id, "failed"
-
-    finally:
-        if temp_path is not None and temp_path.exists():
-            temp_path.unlink()
 
 def build_asts(
     csv_path: Path, output_dir: Path,
