@@ -25,26 +25,12 @@ class CCppPreprocessor:
 
     CLANG_ARGS = [
         "--target=x86_64-w64-windows-gnu",
-        "--gcc-install-dir=C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/16.1.0",
-
         "-w",
         "-DM_PI=3.14159265358979323846",
-
-        "-isystem",
-        "C:/msys64/ucrt64/include",
-
-        "-isystem",
-        "C:/msys64/ucrt64/include/opencv4",
-
-        "-isystem",
-        "C:/msys64/ucrt64/include/eigen3",
-
-        "-isystem",
-        "C:/msys64/ucrt64/include/cryptopp",
-
-        "-Xclang",
-        "-ast-dump=json",
-        "-fsyntax-only",
+        "-isystem", "C:/msys64/ucrt64/include/opencv4",
+        "-isystem", "C:/msys64/ucrt64/include/eigen3",
+        "-isystem", "C:/msys64/ucrt64/include/cryptopp",
+        "-Xclang", "-ast-dump=json", "-fsyntax-only"
     ]
 
     RELEVANT_METADATA = {

@@ -11,7 +11,6 @@ Instead of processing source code as raw text, the project parses it with Clang 
 The goal is to investigate whether structural properties of source code can provide useful signals for distinguishing human-written and AI-generated programs.
 
 ## Features
-
 * **AST-based representation** — parses C/C++ source code using Clang rather than treating it as raw text.
 * **Graph representation** — converts ASTs into graphs containing both structural and declaration/reference relationships.
 * **Typed graph relations** — models `CHILD`, `PARENT`, `REFERENCE`, and `USAGE` relationships separately.
